@@ -3,8 +3,8 @@ orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.1.4 #docker orb
 jobs:
-  build:
-    docker:
+  build: #build, set up 'dependencies'
+    docker: #container to handle the steps
       - image: cimg/node:16.10
     steps:
       - checkout #copies the current directory of the project
@@ -36,8 +36,7 @@ jobs:
       - docker/push:
           image: clumped/education-space
           tag: 1.0.1 
-
-
+  
 workflows:
   simple_workflow:
     jobs:
