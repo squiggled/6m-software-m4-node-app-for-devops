@@ -39,9 +39,7 @@ jobs:
       - run:
           name: Build and Push
           command: |
-            DOCKER_TAG=clumped/education-space:${tag}
-            docker build -t $DOCKER_TAG .
-            docker push $DOCKER_TAG
+            docker build -t clumped/education-space:latest
   scan: #scan for security issues job
         docker:
             - image: cimg/node:16.10
