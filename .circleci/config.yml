@@ -2,6 +2,9 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.1
   docker: circleci/docker@2.1.4 #docker orb
+  heroku: circleci/heroku@2.0.0
+  snyk: snyk/snyk@1.5.0 #3rd party orb of snyk
+
 jobs:
   build: #build, set up 'dependencies'
     docker: #container to handle the steps
@@ -26,24 +29,77 @@ jobs:
   # configure a job called build-and-push to publish docker image to the docker hub registry only when the test job passed.
   build-and-push:
     executor: docker/docker #state the env we are using
+    parameters:
+      tag:
+        type: string
     steps:
       - setup_remote_docker #allows us to use run docker commands
       - checkout
       - docker/check
-      - docker/build:
-          image: clumped/education-space
-          tag: 1.0.1
-      - docker/push:
-          image: clumped/education-space
-          tag: 1.0.1 
+      - run:
+          name: Build and Push
+          command: |
+            DOCKER_TAG=clumped/education-space:${tag}
+            docker build -t $DOCKER_TAG .
+            docker push $DOCKER_TAG
+  scan: #scan for security issues job
+        docker:
+            - image: cimg/node:16.10
+        environment: #can set values to use throughout the job
+            IMAGE_NAME: clumped/education-space
+        steps:
+            - checkout
+            - setup_remote_docker      
+            - docker/check
+            - run: docker build -t $IMAGE_NAME .
+            - snyk/scan: 
+                docker-image-name: $IMAGE_NAME
+  # deploy:
+  #   docker: 
+  #     - image: cimg/node16.10
+  #   steps:
+  #     - setup_remote_docker
+  #     - heroku/install
+  #     - checkout
+  #     - run:
+  #       name: Heroku Container Push #name of gorup of commands you are running
+  #       command: 
+  #         heroku container:login
+  #         heroku container:push web -a appname #push > pushes image to heroku's container registry
+  #         heroku container:release web -a appname #release deploys the image from heroku's container registry
   
 workflows:
   simple_workflow:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - main
       - test:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - main
       - build-and-push:
           requires:
             - test
+          filters:
+            tags:
+              only:
+                - /v[0-9]+\.[0-9]+\.[0-9]+/
+      - deploy:
+          requires:
+            - build-and-push
+          filters:
+            tags:
+              only:
+                - /v[0-9]+\.[0-9]+\.[0-9]+/
+      - scan:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
