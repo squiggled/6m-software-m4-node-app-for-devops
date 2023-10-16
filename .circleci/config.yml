@@ -84,6 +84,7 @@ workflows:
               only:
                 - main
       - build-and-push:
+          tag: v1.0.0
           requires:
             - test
           filters:
