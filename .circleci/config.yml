@@ -35,10 +35,10 @@ jobs:
       - docker/check
       - docker/build:
           image: clumped/education-space
-          tag: 1.0.1
+          tag: <<pipieline.git.tag>>
       - docker/push:
           image: clumped/education-space
-          tag: 1.0.1
+          tag: <<pipieline.git.tag>>
   scan: #scan for security issues job
         docker:
             - image: cimg/node:16.10
@@ -81,13 +81,14 @@ workflows:
             branches:
               only:
                 - main
-      - build-and-push:
+      - build-and-push:        #should run if a tag is pushed, but NOT if a branch is pushed
           requires:
             - test
-          # filters:
-          #   tags:
-          #     only:
-          #       - /v[0-9]+\.[0-9]+\.[0-9]+/
+          filters:
+            tags:
+              only: /^v.*/      #only considers tags that start with 'v'
+            branches:
+                ignore: /.*/    #ignores ALL branches
       # - deploy:
       #     requires:
       #       - build-and-push
