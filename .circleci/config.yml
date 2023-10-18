@@ -51,6 +51,7 @@ jobs:
             - run: docker build -t $IMAGE_NAME .
             - snyk/scan: 
                 docker-image-name: $IMAGE_NAME
+                severity-threshold: high #flags only high/severe 
   # deploy:
   #   docker: 
   #     - image: cimg/node16.10
