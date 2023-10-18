@@ -33,10 +33,10 @@ jobs:
       - docker/check
       - docker/build:
           image: clumped/education-space
-          tag: << pipieline.git.tag >>
+          tag: << pipeline.git.tag >>
       - docker/push:
           image: clumped/education-space
-          tag: << pipieline.git.tag >>
+          tag: << pipeline.git.tag >>
   
 workflows: 
   simple_workflow:
